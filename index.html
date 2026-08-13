@@ -215,11 +215,85 @@
     <span id="toastMsg" class="text-xs md:text-sm font-bold text-gray-200">複製成功</span>
   </div>
 
+  <!-- 下載進度條 Modal 元件 -->
+  <div id="downloadModal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 opacity-0 pointer-events-none transition-all duration-300 px-4">
+    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-red-500/30 shadow-2xl space-y-4 text-center relative overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 h-[3px] custom-gradient"></div>
+      
+      <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto border border-red-500/30 animate-pulse">
+        <i data-lucide="download-cloud" class="w-6 h-6"></i>
+      </div>
+
+      <div>
+        <h4 id="downloadModalTitle" class="text-sm font-black text-white italic truncate">正在提取高清檔案...</h4>
+        <p id="downloadModalSub" class="text-[11px] text-gray-400 mt-1 font-mono">高速通道傳輸中，請稍候</p>
+      </div>
+
+      <!-- 進度條本體 -->
+      <div class="w-full bg-gray-950 rounded-full h-3 border border-red-500/20 overflow-hidden p-0.5">
+        <div id="downloadProgressBar" class="h-full custom-gradient rounded-full w-0 transition-all duration-150"></div>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] font-mono text-gray-400 px-1">
+        <span id="downloadProgressPercent" class="text-red-400 font-bold">0%</span>
+        <span id="downloadProgressSize">0 MB</span>
+      </div>
+    </div>
+  </div>
+
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyhL4Lhla01HgUAaCirWTEYNbNvn9vIuwWNfbpmUsIa9U0JH0hcbK_TdiaH_R7lRhqF/exec"; 
 
     let authenticatedUser = null;
     let fetchedProjects = [];
+
+    // 精準檢測是否為行動裝置 (Mobile)
+    function isMobileDevice() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+             (window.matchMedia && window.matchMedia("(max-width: 768px)").matches && navigator.maxTouchPoints > 0);
+    }
+
+    // 顯示進度條視窗
+    function showDownloadModal(title) {
+      const modal = document.getElementById("downloadModal");
+      document.getElementById("downloadModalTitle").innerText = title || "正在提取高清檔案...";
+      document.getElementById("downloadProgressBar").style.width = "0%";
+      document.getElementById("downloadProgressPercent").innerText = "0%";
+      document.getElementById("downloadProgressSize").innerText = "0 MB";
+      
+      modal.classList.remove("opacity-0", "pointer-events-none");
+      modal.classList.add("opacity-100");
+    }
+
+    // 更新進度條數值
+    function updateDownloadProgress(loadedBytes, totalBytes) {
+      const loadedMB = (loadedBytes / (1024 * 1024)).toFixed(1);
+      const bar = document.getElementById("downloadProgressBar");
+      const percentText = document.getElementById("downloadProgressPercent");
+      const sizeText = document.getElementById("downloadProgressSize");
+
+      if (totalBytes && totalBytes > 0) {
+        const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
+        const percent = Math.min(100, Math.round((loadedBytes / totalBytes) * 100));
+        bar.style.width = `${percent}%`;
+        percentText.innerText = `${percent}%`;
+        sizeText.innerText = `${loadedMB} MB / ${totalMB} MB`;
+      } else {
+        bar.style.width = "100%";
+        bar.classList.add("animate-pulse");
+        percentText.innerText = "傳輸中...";
+        sizeText.innerText = `${loadedMB} MB`;
+      }
+    }
+
+    // 關閉進度條視窗
+    function hideDownloadModal() {
+      const modal = document.getElementById("downloadModal");
+      const bar = document.getElementById("downloadProgressBar");
+      bar.classList.remove("animate-pulse");
+      modal.classList.remove("opacity-100");
+      modal.classList.add("opacity-0", "pointer-events-none");
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
@@ -296,7 +370,7 @@
       downloadSingleVideo(targetUrl, fileName);
     }
 
-    // 核心影音下載與手機原生相容儲存 (無跳轉 + 支援存入手機相簿)
+    // 核心影音下載與進度條控制 (區分電腦端直接存檔 vs 手機端分享相簿)
     async function downloadSingleVideo(driveUrl, customFileName = "Video.mp4") {
       if (!driveUrl) return;
       const { downloadUrl, isFolder, fileId } = parseDriveUrl(driveUrl);
@@ -307,21 +381,38 @@
         return;
       }
 
-      showToast("正在提取高畫質影音資料流... 🚀");
-
       const directStreamUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : downloadUrl;
 
-      // 優先採用 Blob 提取 + 手機原生分享機制（可以直接選「儲存影片」存入相簿）
+      showDownloadModal(customFileName);
+
       if (fileId) {
         try {
           const response = await fetch(directStreamUrl);
           if (!response.ok) throw new Error("直連限制");
-          const blob = await response.blob();
+
+          const contentLength = response.headers.get('content-length');
+          const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+          let loadedBytes = 0;
+
+          const reader = response.body.getReader();
+          const chunks = [];
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            loadedBytes += value.length;
+            updateDownloadProgress(loadedBytes, totalBytes);
+          }
+
+          const blob = new Blob(chunks, { type: "video/mp4" });
           const videoFile = new File([blob], customFileName, { type: "video/mp4" });
 
-          // 檢測手機端是否支援原生分頁 Web Share API
-          if (navigator.canShare && navigator.canShare({ files: [videoFile] })) {
-            showToast("請在彈出選單中點選「儲存影片」以直接存入手機相簿 📱");
+          hideDownloadModal();
+
+          // 僅限手機端且支援 Share API 時，喚起選單以存入相簿
+          if (isMobileDevice() && navigator.canShare && navigator.canShare({ files: [videoFile] })) {
+            showToast("請在彈出選單中點選「儲存影片」存入手機相簿 📱");
             await navigator.share({
               files: [videoFile],
               title: customFileName,
@@ -330,7 +421,7 @@
             return;
           }
 
-          // 一般桌面端瀏覽器，以 Blob 本機觸發靜默下載
+          // 電腦端 (Desktop) 或無原生分享時，直接靜默觸發檔案儲存
           const blobUrl = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = blobUrl;
@@ -339,19 +430,20 @@
           a.click();
           document.body.removeChild(a);
           setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-          showToast("影片下載完成 🏆");
+          showToast("影片已成功下載至電腦 🏆");
           return;
 
         } catch (e) {
-          console.warn("Blob stream fetch fallback (大檔案或網路限制):", e);
+          console.warn("Blob stream fetch error:", e);
+          hideDownloadModal();
         }
       }
 
-      // 如果 Blob 提取失敗（如檔案過大超過手機 RAM 限制），採用無跳轉原生 A 標籤下載
+      // 備案：原生無跳轉下載發起
+      hideDownloadModal();
       const a = document.createElement("a");
       a.href = directStreamUrl;
       a.download = customFileName;
-      /* 絕對不設 target="_blank"，避免跳轉分頁或開啟 Google Drive 網頁 */
       a.style.display = "none";
       document.body.appendChild(a);
       a.click();
@@ -361,8 +453,6 @@
 
     async function downloadImageDirect(imageUrl, defaultFileName = "VideoCover.jpg") {
       if (!imageUrl || imageUrl.trim() === "") return;
-
-      showToast("正在提取封面圖... 🖼️");
 
       const driveFileIdRegex = /\/file\/d\/([a-zA-Z0-9_-]+)\//;
       const driveIdParamRegex = /[?&]id=([a-zA-Z0-9_-]+)/;
@@ -377,14 +467,34 @@
         targetUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
       }
 
+      showDownloadModal(defaultFileName);
+
       try {
         const response = await fetch(targetUrl);
         if (!response.ok) throw new Error("無讀取權限");
-        const blob = await response.blob();
+
+        const contentLength = response.headers.get('content-length');
+        const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+        let loadedBytes = 0;
+
+        const reader = response.body.getReader();
+        const chunks = [];
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          loadedBytes += value.length;
+          updateDownloadProgress(loadedBytes, totalBytes);
+        }
+
+        const blob = new Blob(chunks, { type: "image/jpeg" });
         const imgFile = new File([blob], defaultFileName, { type: "image/jpeg" });
 
-        // 支援手機原生分享直接存到相簿/照片庫
-        if (navigator.canShare && navigator.canShare({ files: [imgFile] })) {
+        hideDownloadModal();
+
+        // 僅限手機端喚起分享存相簿
+        if (isMobileDevice() && navigator.canShare && navigator.canShare({ files: [imgFile] })) {
           showToast("請點選「儲存影像」以存入手機相簿 🖼️");
           await navigator.share({
             files: [imgFile],
@@ -393,6 +503,7 @@
           return;
         }
 
+        // 電腦端直接下載
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = blobUrl;
@@ -401,10 +512,10 @@
         a.click();
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-        showToast("封面圖下載成功 🏆");
+        showToast("封面圖已下載至電腦 🏆");
       } catch (err) {
-        console.warn("Direct image fetch fallback:", err);
-        // 備用方案：絕不開啟新分頁，直接觸發靜默下載
+        console.warn("Direct image fetch error:", err);
+        hideDownloadModal();
         const a = document.createElement("a");
         a.href = targetUrl;
         a.download = defaultFileName;
