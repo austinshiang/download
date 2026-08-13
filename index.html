@@ -274,7 +274,7 @@
       return { downloadUrl: url, previewUrl: null, isFolder: false, fileId: null };
     }
 
-    // 無跳轉背景直接下載（防跳轉、防檔案毀損）
+    // 影音下載核心（解決背景 iframe 被卡住無反應問題）
     function downloadSingleVideo(driveUrl, customFileName) {
       if (!driveUrl) return;
       const { downloadUrl, isFolder } = parseDriveUrl(driveUrl);
@@ -285,19 +285,24 @@
         return;
       }
 
-      showToast("正在啟動直接下載通道，請稍候... 🚀");
+      showToast("已發起安全下載，正在為您提取檔案... 🚀");
 
-      // 建立背景隱藏下載通道，觸發瀏覽器原生物件下載（不開啟新頁面、檔案不毀損）
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = downloadUrl;
-      document.body.appendChild(iframe);
+      // 建立動態 <a> 標籤發起下載（相容所有現代瀏覽器與大檔案確認頁）
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.target = "_blank"; // 大檔案 (>100MB) 遇到 Google 病毒掃描時，自動在新視窗開啓「仍要下載」確認頁，不會鎖死 app
+      if (customFileName) {
+        a.download = customFileName;
+      }
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
 
       setTimeout(() => {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
+        if (document.body.contains(a)) {
+          document.body.removeChild(a);
         }
-      }, 60000);
+      }, 3000);
     }
 
     function downloadVideoByIndex(sortedIndex, videoIndex) {
@@ -366,9 +371,24 @@
       else if (match2) fileId = match2[1];
 
       if (fileId) {
-        const downloadUrl = `https://drive.google.com/uc?export=download&confirm=t&id=${fileId}`;
-        downloadSingleVideo(downloadUrl, defaultFileName);
-        return;
+        const directImgUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+        try {
+          const response = await fetch(directImgUrl);
+          if (!response.ok) throw new Error("無讀取權限");
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = defaultFileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          showToast("封面圖下載成功 🏆");
+          return;
+        } catch (e) {
+          // Fallback to direct link
+        }
       }
 
       try {
@@ -734,7 +754,7 @@
             </button>
             ` : ''}
           </div>
-          <p class="text-[11px] text-gray-500 text-center mt-2 font-mono">提示：點擊按鈕將於背景直接下載，完全不需開啟新頁面。</p>
+          <p class="text-[11px] text-gray-500 text-center mt-2 font-mono">提示：點擊按鈕將直接觸發下載。如遇到大檔案確認提示，點選「仍要下載」即可儲存。</p>
         `;
       }
 
@@ -801,7 +821,7 @@
           <div class="border-t border-red-950/40 pt-4 flex justify-end">
             <button 
               onclick="copyAllAction('detailCopytext', 'detailTags', '複製成功！文案與標籤已合併複製至剪貼簿 🏆')"
-              class="flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 hover:from-gray-900 hover:to-gray-900 border border-red-500/30 hover:border-red-500/50 text-sm font-black italic text-orange-400 rounded-2xl transition-all duration-150 active:scale-95 shadow-lg cursor-pointer"
+              class="flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 hover:from-gray-900 hover:to-gray-950 border border-red-500/30 hover:border-red-500/50 text-sm font-black italic text-orange-400 rounded-2xl transition-all duration-150 active:scale-95 shadow-lg cursor-pointer"
             >
               <i data-lucide="layers" class="w-4 h-4"></i>
               <span>合併複製全部（文案 + 換行 + 標籤）</span>
