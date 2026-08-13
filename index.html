@@ -255,7 +255,8 @@
 
       if (fileId) {
         return {
-          downloadUrl: `https://drive.google.com/uc?export=download&confirm=t&id=${fileId}`,
+          /* 使用 lh3 高速直連通道，繞過 Google 雲端 >100MB 病毒掃描警告頁面 */
+          downloadUrl: `https://lh3.googleusercontent.com/d/${fileId}`,
           previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
           isFolder: false,
           fileId: fileId
@@ -285,11 +286,12 @@
 
       showToast("正在提取高畫質影音資料流... 🚀");
 
-      // 優先採用 Blob 提取 + 手機原生分享機制（直接存相簿）
+      const directStreamUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : downloadUrl;
+
+      // 優先採用 Blob 提取 + 手機原生分享機制（可以直接選「儲存影片」存入相簿）
       if (fileId) {
-        const streamUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
         try {
-          const response = await fetch(streamUrl);
+          const response = await fetch(directStreamUrl);
           if (!response.ok) throw new Error("直連限制");
           const blob = await response.blob();
           const videoFile = new File([blob], customFileName, { type: "video/mp4" });
@@ -318,34 +320,76 @@
           return;
 
         } catch (e) {
-          console.warn("Direct stream fetch fallback", e);
+          console.warn("Blob stream fetch fallback (大檔案或網路限制):", e);
         }
       }
 
-      // 備用動態 A 標籤靜默下載
+      // 如果 Blob 提取失敗（如檔案過大超過手機 RAM 限制），採用無跳轉原生 A 標籤下載
       const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.target = "_blank";
-      if (customFileName) a.download = customFileName;
+      a.href = directStreamUrl;
+      a.download = customFileName;
+      /* 絕對不設 target="_blank"，避免跳轉分頁或開啟 Google Drive 網頁 */
       a.style.display = "none";
       document.body.appendChild(a);
       a.click();
       setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 3000);
+      showToast("已發起原生下載，檔案儲存中 🚀");
     }
 
-    function downloadVideoByIndex(sortedIndex, videoIndex) {
-      const sortedProjects = [...fetchedProjects].sort((a, b) => {
-        return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
-      });
-      const item = sortedProjects[sortedIndex];
-      if (!item) return;
+    async function downloadImageDirect(imageUrl, defaultFileName = "VideoCover.jpg") {
+      if (!imageUrl || imageUrl.trim() === "") return;
 
-      const rawUrls = (item.driveUrl || '').split(',').map(u => u.trim()).filter(Boolean);
-      const targetUrl = rawUrls[videoIndex] || rawUrls[0];
-      if (targetUrl) {
-        const cleanDate = formatDateOnly(item.date);
-        const fileName = `${item.title}_${cleanDate}_#${videoIndex + 1}.mp4`;
-        downloadSingleVideo(targetUrl, fileName);
+      showToast("正在提取封面圖... 🖼️");
+
+      const driveFileIdRegex = /\/file\/d\/([a-zA-Z0-9_-]+)\//;
+      const driveIdParamRegex = /[?&]id=([a-zA-Z0-9_-]+)/;
+      let fileId = null;
+      const match1 = imageUrl.match(driveFileIdRegex);
+      const match2 = imageUrl.match(driveIdParamRegex);
+      if (match1) fileId = match1[1];
+      else if (match2) fileId = match2[1];
+
+      let targetUrl = imageUrl;
+      if (fileId) {
+        targetUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+      }
+
+      try {
+        const response = await fetch(targetUrl);
+        if (!response.ok) throw new Error("無讀取權限");
+        const blob = await response.blob();
+        const imgFile = new File([blob], defaultFileName, { type: "image/jpeg" });
+
+        // 支援手機原生分享直接存到相簿/照片庫
+        if (navigator.canShare && navigator.canShare({ files: [imgFile] })) {
+          showToast("請點選「儲存影像」以存入手機相簿 🖼️");
+          await navigator.share({
+            files: [imgFile],
+            title: defaultFileName
+          });
+          return;
+        }
+
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = defaultFileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        showToast("封面圖下載成功 🏆");
+      } catch (err) {
+        console.warn("Direct image fetch fallback:", err);
+        // 備用方案：絕不開啟新分頁，直接觸發靜默下載
+        const a = document.createElement("a");
+        a.href = targetUrl;
+        a.download = defaultFileName;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 3000);
+        showToast("已發起圖片下載 🖼️");
       }
     }
 
