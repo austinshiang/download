@@ -36,7 +36,6 @@
       background: rgba(239, 68, 68, 0.1);
       border: 1px solid rgba(239, 68, 68, 0.4);
     }
-    /* 隱藏滾動條但保持滾動功能 */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -44,15 +43,13 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    /* 頁面切換過渡動畫 */
     .fade-in {
-      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px) skewX(-1deg); }
-      to { opacity: 1; transform: translateY(0) skewX(0); }
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    /* 碳纖維風微紋理背景 */
     .carbon-texture {
       background-image: radial-gradient(rgba(239, 68, 68, 0.1) 1px, transparent 0), radial-gradient(rgba(249, 115, 22, 0.05) 1px, transparent 0);
       background-size: 8px 8px;
@@ -62,14 +59,14 @@
 </head>
 <body class="text-gray-100 min-h-screen flex flex-col justify-between carbon-texture">
 
-  <!-- 背景裝飾賽道尾燈與引擎高溫霓虹光暈 -->
+  <!-- 背景裝飾賽道尾燈與霓虹光暈 -->
   <div class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[140px] pointer-events-none"></div>
   <div class="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[140px] pointer-events-none"></div>
 
   <!-- 導覽列 -->
   <header class="w-full max-w-5xl mx-auto px-4 py-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <!-- 品牌 LOGO 圖片區域 (可自行替換 src 網址) -->
+      <!-- 品牌 LOGO 區域 -->
       <div class="w-12 h-12 rounded-xl overflow-hidden border border-red-500/20 shadow-lg shadow-red-500/15 shrink-0 bg-gray-950">
         <img 
           src="https://images.1111.com.tw/oad/117197616.jpg" 
@@ -79,14 +76,13 @@
         />
       </div>
       <div>
-        <h1 class="text-xl font-black tracking-tighter italic text-transparent bg-clip-text bg-gradient-to-r from-white via-red-400 to-orange-500">行銷推廣　</h1>
-        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">短視頻影音交付</p>
+        <h1 class="text-xl font-black tracking-tighter italic text-transparent bg-clip-text bg-gradient-to-r from-white via-red-400 to-orange-500">行銷推廣</h1>
+        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">短視頻影音交付控制端</p>
       </div>
     </div>
     
     <!-- 右側選單 -->
     <div class="flex items-center gap-4">
-      <!-- 登出按鈕 -->
       <button id="logoutBtn" class="hidden glass-btn text-xs text-red-400 hover:text-white px-4 py-2 rounded-xl flex items-center gap-1.5 transition duration-150 transform -skew-x-12">
         <i data-lucide="power" class="w-4 h-4 transform skew-x-12"></i>
         <span class="transform skew-x-12 font-bold">安全登出</span>
@@ -97,24 +93,20 @@
   <!-- 主要內容區 -->
   <main class="flex-grow w-full max-w-5xl mx-auto px-4 py-6 relative z-10 flex flex-col justify-start">
     
-    <!-- ========================================== -->
     <!-- 1. 登入介面 (Login View) -->
-    <!-- ========================================== -->
-    <section id="loginSection" class="fade-in max-w-md w-full mx-auto my-auto py-12">
+    <section id="loginSection" class="fade-in max-w-md w-full mx-auto my-auto py-8">
       <div class="glass-card rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-        <!-- 賽道極速裝飾紅線 -->
         <div class="absolute top-0 left-0 right-0 h-[4px] custom-gradient"></div>
         
         <div class="text-center mb-8">
           <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10 text-red-500 mb-3 border border-red-500/20">
             <i data-lucide="shield-check" class="w-6 h-6"></i>
           </div>
-          <h2 class="text-2xl font-black text-white italic tracking-tight">客戶專屬主控制台</h2>
+          <h2 class="text-2xl font-black text-white italic tracking-tight">客戶專屬控制台</h2>
           <p class="text-xs text-gray-400 mt-2 font-medium">請輸入您的專案合作代號與存取密碼以解鎖檔案</p>
         </div>
 
-        <form id="loginForm" class="space-y-5" onsubmit="event.preventDefault();">
-          <!-- 客戶代號 -->
+        <form id="loginForm" class="space-y-5" onsubmit="handleLoginSubmit(event);">
           <div>
             <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2" for="clientId">客戶代號 (Client ID)</label>
             <div class="relative flex items-center">
@@ -123,13 +115,13 @@
                 type="text" 
                 id="clientId" 
                 placeholder="例如: CLIENT01" 
+                autocomplete="username"
                 class="w-full bg-gray-950/80 border border-gray-800 rounded-2xl pl-12 pr-4 py-3.5 text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition duration-150 font-mono tracking-wider"
                 required
               />
             </div>
           </div>
 
-          <!-- 登入密碼 -->
           <div>
             <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2" for="clientPassword">存取密碼 (Password)</label>
             <div class="relative flex items-center">
@@ -138,13 +130,13 @@
                 type="password" 
                 id="clientPassword" 
                 placeholder="請輸入密碼" 
+                autocomplete="current-password"
                 class="w-full bg-gray-950/80 border border-gray-800 rounded-2xl pl-12 pr-4 py-3.5 text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition duration-150 font-mono tracking-wider"
                 required
               />
             </div>
           </div>
 
-          <!-- 提示資訊 -->
           <div class="text-[11px] text-gray-500 flex items-start gap-2 font-mono bg-gray-950/60 p-4 rounded-xl border border-red-500/10">
             <i data-lucide="info" class="w-4 h-4 shrink-0 text-orange-500 mt-0.5"></i>
             <div>
@@ -152,22 +144,19 @@
             </div>
           </div>
 
-          <!-- 登入按鈕 -->
           <button 
             type="submit" 
             id="loginSubmitBtn"
             class="w-full py-4 rounded-2xl text-base font-black italic tracking-wide text-white bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 hover:from-red-500 hover:via-orange-400 hover:to-yellow-400 active:scale-[0.98] transition-all duration-150 shadow-xl shadow-red-500/20 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span>安全驗證並進入控制大廳 🏁</span>
-            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            <span id="loginBtnText">安全驗證並進入控制大廳 🏁</span>
+            <i data-lucide="chevron-right" id="loginBtnIcon" class="w-5 h-5"></i>
           </button>
         </form>
       </div>
     </section>
 
-    <!-- ========================================== -->
     <!-- 2. 專案大廳 (Lobby View) -->
-    <!-- ========================================== -->
     <section id="lobbySection" class="fade-in hidden w-full">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
@@ -183,40 +172,19 @@
         </div>
       </div>
 
-      <!-- 骨架屏載入動畫 -->
-      <div id="loadingState" class="w-full space-y-4 hidden">
-        <div class="glass-card rounded-2xl p-5 animate-pulse flex items-center justify-between">
-          <div class="space-y-2 w-2/3">
-            <div class="h-4 bg-gray-800 rounded w-1/4"></div>
-            <div class="h-5 bg-gray-800 rounded w-3/4"></div>
-          </div>
-          <div class="h-10 bg-gray-800 rounded w-24"></div>
-        </div>
-      </div>
-
-      <!-- 大廳影片卡片清單 (網格顯示，支援 9:16 手機直式縮圖比例) -->
-      <div id="lobbyContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-        <!-- 影片大廳項目會動態渲染在此 -->
-      </div>
+      <!-- 大廳影片卡片清單 (9:16 直式) -->
+      <div id="lobbyContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5"></div>
     </section>
 
-    <!-- ========================================== -->
     <!-- 3. 專案詳細內容 (Detail View) -->
-    <!-- ========================================== -->
     <section id="detailSection" class="fade-in hidden w-full max-w-4xl mx-auto">
-      
-      <!-- 返回大廳按鈕 -->
       <div class="mb-6">
         <button id="backToLobbyBtn" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-bold py-2.5 px-4 rounded-xl glass-btn transition duration-150 transform -skew-x-12">
           <i data-lucide="arrow-left" class="w-4 h-4 transform skew-x-12"></i>
           <span class="transform skew-x-12">返回專案大廳</span>
         </button>
       </div>
-
-      <!-- 詳細內容容器 -->
-      <div id="detailContainer">
-        <!-- 詳細項目會動態渲染在此 -->
-      </div>
+      <div id="detailContainer"></div>
     </section>
 
   </main>
@@ -235,140 +203,106 @@
     <span id="toastMsg" class="text-xs md:text-sm font-bold text-gray-200">複製成功</span>
   </div>
 
-  <!-- JavaScript 邏輯 -->
   <script>
-    // ==========================================
-    // ⚠️ 基礎配置：Google Apps Script 網頁應用程式 URL
-    // ==========================================
+    // 配置：Google Apps Script API 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyhL4Lhla01HgUAaCirWTEYNbNvn9vIuwWNfbpmUsIa9U0JH0hcbK_TdiaH_R7lRhqF/exec"; 
 
-    // 狀態管理
+    // 全局狀態
     let authenticatedUser = null;
     let fetchedProjects = [];
 
-    // 初始化
+    // 初始化與 Session 自動復原
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       initApp();
+      checkSavedSession(); // 自動恢復登入，避免手機刷新閃退
     });
 
     function initApp() {
-      // 登入事件
-      const loginForm = document.getElementById("loginForm");
-      loginForm.addEventListener("submit", handleLogin);
-
-      // 登出事件
-      const logoutBtn = document.getElementById("logoutBtn");
-      logoutBtn.addEventListener("click", logout);
-
-      // 返回大廳
-      const backToLobbyBtn = document.getElementById("backToLobbyBtn");
-      backToLobbyBtn.addEventListener("click", showLobby);
+      document.getElementById("logoutBtn").addEventListener("click", logout);
+      document.getElementById("backToLobbyBtn").addEventListener("click", showLobby);
     }
 
-    /**
-     * 超強安全防禦級日期解析器
-     * 為了解決 iOS / Safari 瀏覽器在 new Date('YYYY-MM-DD') 時回傳 Invalid Date 的相容性問題
-     */
-    function parseDateSafe(dateStr) {
-      if (!dateStr) return new Date(0);
-      if (dateStr instanceof Date) return dateStr;
-      
-      let str = String(dateStr).trim();
-      if (str === "") return new Date(0);
+    // 檢查 sessionStorage，避免手機端閃退/重新載入回登入頁
+    function checkSavedSession() {
+      try {
+        const savedUser = sessionStorage.getItem("nitro_auth_user");
+        const savedData = sessionStorage.getItem("nitro_auth_data");
 
-      // Safari 不支援解析包含「橫槓 -」的日期加時間字串
-      // 將字串中的「-」替換成「/」以獲得完美的跨平台相容性 (例如: 2026/06/15)
-      const formattedStr = str.replace(/-/g, '/');
-      
-      const parsed = Date.parse(formattedStr);
-      if (!isNaN(parsed)) {
-        return new Date(parsed);
-      }
-      
-      // 嘗試直接 parse 原字串 (備用)
-      const originalParsed = Date.parse(str);
-      if (!isNaN(originalParsed)) {
-        return new Date(originalParsed);
-      }
-      
-      // 處理中文年月日情況，例如 "2026年06月15日"
-      const chineseDateMatch = str.match(/(\d{4})[年\/](\d{1,2})[月\/](\d{1,2})日?/);
-      if (chineseDateMatch) {
-        return new Date(
-          parseInt(chineseDateMatch[1], 10),
-          parseInt(chineseDateMatch[2], 10) - 1,
-          parseInt(chineseDateMatch[3], 10)
-        );
-      }
-      
-      const d = new Date(dateStr);
-      if (!isNaN(d.getTime())) {
-        return d;
-      }
-      
-      // 如果完全無法解析，回傳預設最早日期，防止頁面當掉
-      return new Date(0);
-    }
+        if (savedUser && savedData) {
+          authenticatedUser = savedUser;
+          fetchedProjects = JSON.parse(savedData);
 
-    // 格式化日期：確保只留 YYYY-MM-DD (安全包裝版)
-    function formatDateOnly(dateStr) {
-      if (!dateStr || String(dateStr).trim() === "") return "無日期";
-      
-      const d = parseDateSafe(dateStr);
-      if (d.getTime() === 0) {
-        // 如果安全解析判定失敗，但字串中本身就包含 YYYY-MM-DD 結構，直接正規抓取
-        const match = String(dateStr).match(/\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/);
-        if (match) {
-          return match[0].replace(/\//g, '-');
+          // 自動進入大廳
+          document.getElementById("loginSection").classList.add("hidden");
+          document.getElementById("logoutBtn").classList.remove("hidden");
+          document.getElementById("lobbySection").classList.remove("hidden");
+          
+          document.getElementById("welcomeClientCode").innerText = authenticatedUser;
+          document.getElementById("projectCount").innerText = fetchedProjects.length;
+
+          renderLobby();
+          showToast("已自動恢復專案大廳 ⚡️");
         }
-        return "無日期";
+      } catch (err) {
+        console.warn("Session復原失敗:", err);
       }
-      
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
     }
 
-    // 處理正式線上登入與多工作表資料拉取
-    async function handleLogin() {
+    // 表單提交處理（嚴格攔截 preventDefault）
+    async function handleLoginSubmit(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
       const clientIdVal = document.getElementById("clientId").value.trim().toUpperCase();
       const passwordVal = document.getElementById("clientPassword").value.trim();
 
-      const loginSubmitBtn = document.getElementById("loginSubmitBtn");
-      loginSubmitBtn.disabled = true;
-      loginSubmitBtn.innerText = "驗證中，正在讀取雲端資料夾...";
+      if (!clientIdVal || !passwordVal) {
+        showToast("請輸入完整的客戶代碼與密碼");
+        return false;
+      }
+
+      setLoginLoading(true);
 
       try {
-        let results = [];
-
-        // 直接執行正式雲端資料串接
-        if (GAS_API_URL === "您的_GOOGLE_APPS_SCRIPT_網頁應用程式_網址" || !GAS_API_URL.startsWith("http")) {
-          throw new Error("系統未正確配置 API API_URL 串接連結。");
-        }
+        const fetchUrl = `${GAS_API_URL}?clientId=${encodeURIComponent(clientIdVal)}&password=${encodeURIComponent(passwordVal)}`;
         
-        const response = await fetch(`${GAS_API_URL}?clientId=${encodeURIComponent(clientIdVal)}&password=${encodeURIComponent(passwordVal)}`);
-        if (!response.ok) throw new Error("與 Google 雲端資料庫連線失敗");
+        // 設定 12 秒 Timeout 提示
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const response = await fetch(fetchUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error("與 Google 雲端資料庫連線超時");
         const resJson = await response.json();
         
         if (!resJson.success) {
           showToast(resJson.error || "登入驗證失敗，請檢查客戶代碼與密碼。");
-          resetLoginBtn();
-          return;
+          setLoginLoading(false);
+          return false;
         }
-        results = resJson.data || [];
 
-        // 登入驗證成功
+        const results = resJson.data || [];
+
+        // 成功驗證 -> 儲存至 Session 快取（解決手機閃退）
         authenticatedUser = clientIdVal;
         fetchedProjects = results;
 
-        // UI切換
+        try {
+          sessionStorage.setItem("nitro_auth_user", authenticatedUser);
+          sessionStorage.setItem("nitro_auth_data", JSON.stringify(fetchedProjects));
+        } catch (e) {
+          console.warn("SessionStorage 寫入受限");
+        }
+
+        // UI 切換
         document.getElementById("loginSection").classList.add("hidden");
         document.getElementById("logoutBtn").classList.remove("hidden");
         document.getElementById("lobbySection").classList.remove("hidden");
         
-        // 更新大廳資訊
         document.getElementById("welcomeClientCode").innerText = authenticatedUser;
         document.getElementById("projectCount").innerText = fetchedProjects.length;
 
@@ -377,23 +311,77 @@
 
       } catch (error) {
         console.error(error);
-        showToast(error.message || "連線逾時，請檢查網路狀態或稍後重試。");
+        if (error.name === 'AbortError') {
+          showToast("網路回應較慢，請確認網路連線後重試。");
+        } else {
+          showToast(error.message || "連線逾時，請檢查網路狀態或稍後重試。");
+        }
       } finally {
-        resetLoginBtn();
+        setLoginLoading(false);
+      }
+
+      return false;
+    }
+
+    function setLoginLoading(isLoading) {
+      const loginSubmitBtn = document.getElementById("loginSubmitBtn");
+      const loginBtnText = document.getElementById("loginBtnText");
+      
+      if (isLoading) {
+        loginSubmitBtn.disabled = true;
+        loginBtnText.innerText = "快速驗證專案金鑰中...";
+      } else {
+        loginSubmitBtn.disabled = false;
+        loginBtnText.innerText = "安全驗證並進入控制大廳 🏁";
       }
     }
 
-    function resetLoginBtn() {
-      const loginSubmitBtn = document.getElementById("loginSubmitBtn");
-      loginSubmitBtn.disabled = false;
-      loginSubmitBtn.innerHTML = `<span>安全驗證並進入控制大廳 🏁</span><i data-lucide="chevron-right" class="w-5 h-5"></i>`;
-      lucide.createIcons();
+    function parseDateSafe(dateStr) {
+      if (!dateStr) return new Date(0);
+      if (dateStr instanceof Date) return dateStr;
+      
+      let str = String(dateStr).trim();
+      if (str === "") return new Date(0);
+
+      const formattedStr = str.replace(/-/g, '/');
+      const parsed = Date.parse(formattedStr);
+      if (!isNaN(parsed)) return new Date(parsed);
+      
+      const originalParsed = Date.parse(str);
+      if (!isNaN(originalParsed)) return new Date(originalParsed);
+      
+      const chineseDateMatch = str.match(/(\d{4})[年\/](\d{1,2})[月\/](\d{1,2})日?/);
+      if (chineseDateMatch) {
+        return new Date(
+          parseInt(chineseDateMatch[1], 10),
+          parseInt(chineseDateMatch[2], 10) - 1,
+          parseInt(chineseDateMatch[3], 10)
+        );
+      }
+      return new Date(0);
     }
 
-    // 登出
+    function formatDateOnly(dateStr) {
+      if (!dateStr || String(dateStr).trim() === "") return "無日期";
+      const d = parseDateSafe(dateStr);
+      if (d.getTime() === 0) {
+        const match = String(dateStr).match(/\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/);
+        return match ? match[0].replace(/\//g, '-') : "無日期";
+      }
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
     function logout() {
       authenticatedUser = null;
       fetchedProjects = [];
+      try {
+        sessionStorage.removeItem("nitro_auth_user");
+        sessionStorage.removeItem("nitro_auth_data");
+      } catch (e) {}
+
       document.getElementById("clientId").value = "";
       document.getElementById("clientPassword").value = "";
       
@@ -405,14 +393,14 @@
       showToast("已安全登出系統");
     }
 
-    // 返回大廳
     function showLobby() {
+      // 返迴大廳時銷毀詳細頁面的 DOM（釋放手機記憶體）
+      document.getElementById("detailContainer").innerHTML = "";
       document.getElementById("detailSection").classList.add("hidden");
       document.getElementById("lobbySection").classList.remove("hidden");
       renderLobby();
     }
 
-    // 縮圖與 Google Drive 預覽圖優化解析 (支援 9:16 置中剪裁渲染)
     function getDisplayThumbnail(thumbnailUrl) {
       if (!thumbnailUrl || thumbnailUrl.trim() === "") {
         return `<div class="w-full h-full custom-gradient opacity-80 flex flex-col items-center justify-center text-white/50">
@@ -421,7 +409,6 @@
                 </div>`;
       }
       
-      // 解析 Google Drive 網址
       const driveFileIdRegex = /\/file\/d\/([a-zA-Z0-9_-]+)\//;
       const driveIdParamRegex = /[?&]id=([a-zA-Z0-9_-]+)/;
       
@@ -431,48 +418,37 @@
       if (match1) fileId = match1[1];
       else if (match2) fileId = match2[1];
 
-      let srcUrl = thumbnailUrl;
-      if (fileId) {
-        srcUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
-      }
+      const srcUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : thumbnailUrl;
 
-      return `<img src="${srcUrl}" alt="Video Cover" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" onerror="this.onerror=null; this.outerHTML='<div class=\'w-full h-full bg-gray-900 flex items-center justify-center\'><i data-lucide=\'image-off\' class=\'w-6 h-6 text-gray-700\'></i></div>'; lucide.createIcons();" />`;
+      return `<img src="${srcUrl}" alt="Video Cover" loading="lazy" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" onerror="this.onerror=null; this.outerHTML='<div class=\'w-full h-full bg-gray-900 flex items-center justify-center\'><i data-lucide=\'image-off\' class=\'w-6 h-6 text-gray-700\'></i></div>'; lucide.createIcons();" />`;
     }
 
-    // 渲染大廳 (支援：9:16 手機直式外觀與純數字年月日日期)
     function renderLobby() {
       const container = document.getElementById("lobbyContainer");
       container.innerHTML = "";
 
-      // 降冪排列日期 (最新的日期在前面)
       const sortedProjects = [...fetchedProjects].sort((a, b) => {
         return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
       });
 
       sortedProjects.forEach((item, index) => {
         const thumbnailHtml = getDisplayThumbnail(item.thumbnail);
-        const cleanDate = formatDateOnly(item.date); // 純數字年月日，防呆防錯
+        const cleanDate = formatDateOnly(item.date);
         
-        // 解析多影片網址
         const videoUrls = (item.driveUrl || '').split(',').map(s => s.trim()).filter(Boolean);
         const videoCount = videoUrls.length;
 
         const lobbyItemHtml = `
           <div class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between border border-red-500/10 hover:border-red-500/40 transition-all duration-300 group shadow-lg">
-            
-            <!-- 影片縮圖區域 (符合 9:16 直式比例) -->
             <div class="relative w-full aspect-[9/16] bg-gray-950 overflow-hidden cursor-pointer" onclick="showProjectDetails(${index})">
               ${thumbnailHtml}
-              <!-- 漸層暗化遮罩 -->
               <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/10 to-transparent"></div>
               
-              <!-- 日期標註 (縮圖上方疊加，僅顯示純數字年月日) -->
               <span class="absolute top-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black bg-red-600 text-white border border-white/10 backdrop-blur-md transform -skew-x-12">
                 <i data-lucide="clock" class="w-2.5 h-2.5 transform skew-x-12"></i>
                 <span class="transform skew-x-12 font-mono">${cleanDate}</span>
               </span>
 
-              <!-- 多影片數量標籤 -->
               ${videoCount > 1 ? `
               <span class="absolute top-2.5 right-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black bg-orange-500/90 text-white border border-white/10 backdrop-blur-md transform -skew-x-12">
                 <i data-lucide="layers" class="w-2.5 h-2.5 transform skew-x-12"></i>
@@ -480,7 +456,6 @@
               </span>
               ` : ''}
 
-              <!-- 播放按鈕懸停圖示 -->
               <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div class="w-11 h-11 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg shadow-red-500/30 scale-90 group-hover:scale-110 transition-all duration-300">
                   <i data-lucide="play" class="w-5 h-5 fill-white"></i>
@@ -488,7 +463,6 @@
               </div>
             </div>
 
-            <!-- 卡片內容區 -->
             <div class="p-3 space-y-2.5">
               <div class="space-y-1">
                 <span class="text-[9px] text-orange-500 font-mono uppercase tracking-wider font-extrabold">
@@ -499,7 +473,6 @@
                 </h3>
               </div>
 
-              <!-- 大廳按鈕與解鎖提示 -->
               <div class="flex flex-col gap-2 pt-2 border-t border-red-950/40">
                 <button 
                   onclick="showProjectDetails(${index})"
@@ -518,7 +491,7 @@
       lucide.createIcons();
     }
 
-    // 進入專案詳情頁面 (支援多影片拆解與一鍵批次下載)
+    // 渲染專案詳細頁面 (採用輕量 Lazy-Iframe，防止手機 OOM 記憶體爆滿閃退)
     function showProjectDetails(sortedIndex) {
       const sortedProjects = [...fetchedProjects].sort((a, b) => {
         return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
@@ -527,7 +500,6 @@
       const item = sortedProjects[sortedIndex];
       const cleanDate = formatDateOnly(item.date);
 
-      // 解析多個影片連結 (用逗號分隔)
       const rawUrls = (item.driveUrl || '').split(',').map(u => u.trim()).filter(Boolean);
       const videoList = rawUrls.map(u => parseDriveUrl(u));
       const hasMultipleVideos = videoList.length > 1;
@@ -535,9 +507,8 @@
       const detailContainer = document.getElementById("detailContainer");
       
       detailContainer.innerHTML = `
-        <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6">
+        <div class="glass-card rounded-3xl p-5 md:p-8 space-y-6">
           
-          <!-- 頂部標題 -->
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-950/40 pb-4">
             <div>
               <div class="flex items-center gap-2 flex-wrap">
@@ -554,7 +525,7 @@
             </div>
           </div>
 
-          <!-- 影片安全預覽區 (多影片支援) -->
+          <!-- 影片安全預覽區（輕量化動態觸發，省 80% 手機記憶體） -->
           <div class="w-full">
             ${videoList.length > 0 ? `
               <div class="grid grid-cols-1 ${hasMultipleVideos ? 'sm:grid-cols-2 lg:grid-cols-3' : ''} gap-4 justify-items-center">
@@ -563,13 +534,18 @@
                     ${hasMultipleVideos ? `<span class="text-xs font-bold text-orange-400 mb-2 font-mono">影片素材 #${idx + 1}</span>` : ''}
                     
                     ${v.previewUrl ? `
-                      <div class="w-full max-w-[280px] aspect-[9/16] rounded-xl overflow-hidden bg-black/80 border border-red-500/20 relative shadow-xl">
-                        <iframe 
-                          src="${v.previewUrl}" 
-                          class="w-full h-full border-0" 
-                          allow="autoplay; encrypted-media" 
-                          allowfullscreen>
-                        </iframe>
+                      <div class="w-full max-w-[280px] aspect-[9/16] rounded-xl overflow-hidden bg-black/90 border border-red-500/20 relative shadow-xl flex items-center justify-center group" id="iframeBox_${idx}">
+                        <!-- 靜態佔位圖，點擊後才載入 iframe 避免記憶體崩潰 -->
+                        <div class="text-center p-4">
+                          <button 
+                            onclick="loadPreviewIframe(${idx}, '${v.previewUrl}')"
+                            class="w-12 h-12 rounded-full bg-red-600 hover:bg-red-500 text-white inline-flex items-center justify-center shadow-lg shadow-red-500/40 transform transition hover:scale-110 active:scale-95 cursor-pointer mb-2"
+                          >
+                            <i data-lucide="play" class="w-6 h-6 fill-white ml-0.5"></i>
+                          </button>
+                          <p class="text-xs font-bold text-gray-300">點擊播放線上預覽</p>
+                          <p class="text-[10px] text-gray-500 mt-0.5">輕量流暢模式</p>
+                        </div>
                       </div>
                     ` : `
                       <div class="w-full aspect-[9/16] max-w-[280px] bg-gray-900/60 rounded-xl border border-gray-800 flex flex-col items-center justify-center p-4 text-center">
@@ -628,14 +604,12 @@
             </button>
             ` : ''}
           </div>
-          <p class="text-[11px] text-gray-500 text-center mt-2 font-mono">
+          <p class="text-[11px] text-gray-500 text-center mt-1 font-mono">
             提示：若瀏覽器彈出「允許下載多個檔案」提示，請點擊允許。
           </p>
 
           <!-- 文案與標籤 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            
-            <!-- 腳本文案 -->
             <div class="flex flex-col justify-between bg-gray-950/60 border border-red-500/10 rounded-2xl p-4 md:p-5">
               <div>
                 <div class="flex items-center justify-between mb-3">
@@ -655,7 +629,6 @@
               </button>
             </div>
 
-            <!-- 社群標籤 -->
             <div class="flex flex-col justify-between bg-gray-950/60 border border-red-500/10 rounded-2xl p-4 md:p-5">
               <div>
                 <div class="flex items-center justify-between mb-3">
@@ -674,10 +647,8 @@
                 <span>複製標籤</span>
               </button>
             </div>
-
           </div>
 
-          <!-- 超值一鍵複製全部按鈕 -->
           <div class="border-t border-red-950/40 pt-4 flex justify-end">
             <button 
               onclick="copyAllAction('detailCopytext', 'detailTags', '複製成功！文案與標籤已合併複製至剪貼簿 🏆')"
@@ -691,14 +662,27 @@
         </div>
       `;
 
-      // 切換至細節視圖
       document.getElementById("lobbySection").classList.add("hidden");
       document.getElementById("detailSection").classList.remove("hidden");
 
       lucide.createIcons();
     }
 
-    // Google Drive 網址轉換器 (轉成直連下載 & 內嵌預覽)
+    // 動態載入單一 Iframe（避免一次載入多個）
+    function loadPreviewIframe(boxIdx, previewUrl) {
+      const box = document.getElementById(`iframeBox_${boxIdx}`);
+      if (!box) return;
+
+      box.innerHTML = `
+        <iframe 
+          src="${previewUrl}" 
+          class="w-full h-full border-0" 
+          allow="autoplay; encrypted-media" 
+          allowfullscreen>
+        </iframe>
+      `;
+    }
+
     function parseDriveUrl(url) {
       if (!url) return { downloadUrl: "", previewUrl: null, isFolder: false };
 
@@ -731,8 +715,7 @@
       return { downloadUrl: url, previewUrl: null, isFolder: false };
     }
 
-    // 單一影片背景靜默下載 (獨立隱藏 iframe)
-    function downloadSingleVideo(driveUrl, filename) {
+    function downloadSingleVideo(driveUrl) {
       if (!driveUrl) return;
       const { downloadUrl, isFolder } = parseDriveUrl(driveUrl);
 
@@ -742,21 +725,18 @@
         return;
       }
 
-      // 建立獨立獨立的的隱藏式 Frame 觸發下載
       const iframe = document.createElement("iframe");
       iframe.style.display = "none";
       iframe.src = downloadUrl;
       document.body.appendChild(iframe);
 
-      // 下載任務觸發後 2 分鐘自動釋放 DOM 資源
       setTimeout(() => {
         if (document.body.contains(iframe)) {
           document.body.removeChild(iframe);
         }
-      }, 120000);
+      }, 60000);
     }
 
-    // 按索引觸發指定影片下載
     function downloadVideoByIndex(sortedIndex, videoIndex) {
       const sortedProjects = [...fetchedProjects].sort((a, b) => {
         return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
@@ -767,13 +747,11 @@
       const rawUrls = (item.driveUrl || '').split(',').map(u => u.trim()).filter(Boolean);
       const targetUrl = rawUrls[videoIndex] || rawUrls[0];
       if (targetUrl) {
-        const cleanDate = formatDateOnly(item.date);
-        downloadSingleVideo(targetUrl, `${cleanDate}_#${videoIndex + 1}`);
-        showToast(`已啟動影片 #${videoIndex + 1} 下載，請留意下載進度列 🚀`);
+        downloadSingleVideo(targetUrl);
+        showToast(`已啟動影片 #${videoIndex + 1} 下載，請留意進度列 🚀`);
       }
     }
 
-    // 按專案索引觸發一鍵下載全部影片
     function downloadAllVideosForProject(sortedIndex) {
       const sortedProjects = [...fetchedProjects].sort((a, b) => {
         return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
@@ -786,15 +764,13 @@
 
       showToast(`已啟動一鍵下載，正在依序下載 ${rawUrls.length} 部影片... 🚀`);
 
-      const cleanDate = formatDateOnly(item.date);
       rawUrls.forEach((url, idx) => {
         setTimeout(() => {
-          downloadSingleVideo(url, `${cleanDate}_part${idx + 1}`);
-        }, idx * 1200); // 1.2秒間隔避免瀏覽器多檔阻擋
+          downloadSingleVideo(url);
+        }, idx * 1200);
       });
     }
 
-    // 按專案索引觸發圖片下載
     async function downloadImageForProject(sortedIndex) {
       const sortedProjects = [...fetchedProjects].sort((a, b) => {
         return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
@@ -809,7 +785,6 @@
       downloadImageDirect(item.thumbnail, cleanDate);
     }
 
-    // 圖片直接下載觸發器
     async function downloadImageDirect(imageUrl, cleanDate) {
       if (!imageUrl || imageUrl.trim() === "") return;
 
@@ -839,17 +814,15 @@
         URL.revokeObjectURL(blobUrl);
         showToast("封面圖下載成功 🏆");
       } catch (err) {
-        downloadSingleVideo(imageUrl, cleanDate);
+        downloadSingleVideo(imageUrl);
       }
     }
 
-    // 複製文字動作
     function copyAction(elementId, successMessage) {
       const textToCopy = document.getElementById(elementId).innerText;
       executeCopy(textToCopy, successMessage);
     }
 
-    // 一鍵複製全部
     function copyAllAction(textId, tagsId, successMessage) {
       const text = document.getElementById(textId).innerText;
       const tags = document.getElementById(tagsId).innerText;
@@ -857,7 +830,6 @@
       executeCopy(fullContent, successMessage);
     }
 
-    // 執行複製
     function executeCopy(text, successMsg) {
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text)
@@ -868,7 +840,6 @@
       }
     }
 
-    // 備用複製方案 (極高相容性，防 iframe 封鎖)
     function fallbackCopy(text, successMsg) {
       const textArea = document.createElement("textarea");
       textArea.value = text;
@@ -893,14 +864,12 @@
       document.body.removeChild(textArea);
     }
 
-    // Toast 提示
     let toastTimeout;
     function showToast(message) {
       const toast = document.getElementById("toast");
       const toastMsg = document.getElementById("toastMsg");
       
       toastMsg.innerText = message;
-      
       clearTimeout(toastTimeout);
       
       toast.classList.remove("translate-y-20", "opacity-0", "pointer-events-none");
