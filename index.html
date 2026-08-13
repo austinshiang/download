@@ -255,7 +255,6 @@
 
       if (fileId) {
         return {
-          /* 使用 lh3 高速直連通道，繞過 Google 雲端 >100MB 病毒掃描警告頁面 */
           downloadUrl: `https://lh3.googleusercontent.com/d/${fileId}`,
           previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
           isFolder: false,
@@ -271,6 +270,30 @@
       }
       
       return { downloadUrl: url, previewUrl: null, isFolder: false, fileId: null };
+    }
+
+    // 依據專案與影片索引發起影片下載
+    function downloadVideoByIndex(sortedIndex, videoIndex = 0) {
+      const sortedProjects = [...fetchedProjects].sort((a, b) => {
+        return parseDateSafe(b.date).getTime() - parseDateSafe(a.date).getTime();
+      });
+
+      const item = sortedProjects[sortedIndex];
+      if (!item) return;
+
+      const rawUrls = (item.driveUrl || '').split(',').map(u => u.trim()).filter(Boolean);
+      const targetUrl = rawUrls[videoIndex] || rawUrls[0];
+      if (!targetUrl) {
+        showToast("無提供影片下載連結");
+        return;
+      }
+
+      const cleanDate = formatDateOnly(item.date);
+      const fileName = rawUrls.length > 1 
+        ? `${item.title}_${cleanDate}_#${videoIndex + 1}.mp4` 
+        : `${item.title}_${cleanDate}.mp4`;
+
+      downloadSingleVideo(targetUrl, fileName);
     }
 
     // 核心影音下載與手機原生相容儲存 (無跳轉 + 支援存入手機相簿)
@@ -427,54 +450,6 @@
       const cleanDate = formatDateOnly(item.date);
       const fileName = `${item.title}_${cleanDate}_Cover.jpg`;
       downloadImageDirect(item.thumbnail, fileName);
-    }
-
-    async function downloadImageDirect(imageUrl, defaultFileName = "VideoCover.jpg") {
-      if (!imageUrl || imageUrl.trim() === "") return;
-
-      showToast("正在提取封面圖... 🖼️");
-
-      const driveFileIdRegex = /\/file\/d\/([a-zA-Z0-9_-]+)\//;
-      const driveIdParamRegex = /[?&]id=([a-zA-Z0-9_-]+)/;
-      let fileId = null;
-      const match1 = imageUrl.match(driveFileIdRegex);
-      const match2 = imageUrl.match(driveIdParamRegex);
-      if (match1) fileId = match1[1];
-      else if (match2) fileId = match2[1];
-
-      let targetUrl = imageUrl;
-      if (fileId) {
-        targetUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
-      }
-
-      try {
-        const response = await fetch(targetUrl);
-        if (!response.ok) throw new Error("無讀取權限");
-        const blob = await response.blob();
-        const imgFile = new File([blob], defaultFileName, { type: "image/jpeg" });
-
-        // 支援手機原生分享直接存到相簿/照片庫
-        if (navigator.canShare && navigator.canShare({ files: [imgFile] })) {
-          showToast("請點選「儲存影像」以存入手機相簿 🖼️");
-          await navigator.share({
-            files: [imgFile],
-            title: defaultFileName
-          });
-          return;
-        }
-
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = defaultFileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-        showToast("封面圖下載成功 🏆");
-      } catch (err) {
-        window.open(targetUrl, '_blank');
-      }
     }
 
     function parseDateSafe(dateStr) {
